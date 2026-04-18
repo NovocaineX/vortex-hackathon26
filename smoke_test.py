@@ -1,102 +1,52 @@
-"""
-smoke_test.py - End-to-end API smoke test for Forensica AI backend.
-Run from: c:/Users/aadar/Desktop/hackathon/
-    python smoke_test.py
-"""
-import urllib.request
+from __future__ import annotations
+
 import json
-import time
-import io
-import struct
-import zlib
+from io import BytesIO
+from pathlib import Path
 
-BASE = "http://localhost:8000"
+import requests
+from PIL import Image, ImageDraw
 
-
-def make_tiny_png():
-    """Create a minimal valid 1x1 red PNG."""
-    def chunk(name, data):
-        c = zlib.crc32(name + data) & 0xFFFFFFFF
-        return struct.pack(">I", len(data)) + name + data + struct.pack(">I", c)
-
-    sig  = b"\x89PNG\r\n\x1a\n"
-    ihdr = chunk(b"IHDR", struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0))
-    idat = chunk(b"IDAT", zlib.compress(b"\x00\xFF\x00\xFF"))
-    iend = chunk(b"IEND", b"")
-    return sig + ihdr + idat + iend
+BASE_URL = "http://localhost:8000"
 
 
-def post_multipart(url, field_name, filename, content_type, data):
-    boundary = b"FORENSICABOUNDARY"
-    body = (
-        b"--" + boundary + b"\r\n"
-        + f'Content-Disposition: form-data; name="{field_name}"; filename="{filename}"\r\n'.encode()
-        + f"Content-Type: {content_type}\r\n\r\n".encode()
-        + data + b"\r\n"
-        + b"--" + boundary + b"--\r\n"
-    )
-    req = urllib.request.Request(
-        url, data=body,
-        headers={"Content-Type": f"multipart/form-data; boundary={boundary.decode()}"},
-        method="POST",
-    )
-    return urllib.request.urlopen(req)
+def build_sample_image() -> bytes:
+    image = Image.new("RGB", (900, 1200), "white")
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((40, 40, 860, 180), outline="black", width=3)
+    draw.text((70, 90), "FORENSICA SAMPLE CERTIFICATE", fill="black")
+    draw.rectangle((520, 420, 820, 620), fill=(210, 210, 210), outline="black", width=2)
+    draw.text((80, 300), "Name: Jane Doe", fill="black")
+    draw.text((80, 360), "ID: 24A-2026", fill="black")
+    draw.text((80, 980), "Issuer Signature", fill="black")
+    stream = BytesIO()
+    image.save(stream, format="PNG")
+    return stream.getvalue()
 
 
-def post_json(url, payload):
-    req = urllib.request.Request(
-        url,
-        data=json.dumps(payload).encode(),
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    return urllib.request.urlopen(req)
+def main() -> None:
+    print("=== Forensica backend smoke test ===")
+    health = requests.get(f"{BASE_URL}/health", timeout=8).json()
+    print("health:", health)
+
+    sample = build_sample_image()
+    files = {"file": ("sample_document.png", sample, "image/png")}
+    upload = requests.post(f"{BASE_URL}/upload", files=files, timeout=20).json()
+    print("upload:", json.dumps(upload, indent=2))
+
+    analyze = requests.post(
+        f"{BASE_URL}/analyze",
+        json={"document_id": upload["document_id"]},
+        timeout=90,
+    ).json()
+    print("analyze:", json.dumps(analyze, indent=2))
+
+    analysis = requests.get(f"{BASE_URL}/analysis/{analyze['analysis_id']}", timeout=30).json()
+    print("analysis:", json.dumps(analysis, indent=2))
+
+    report = requests.get(f"{BASE_URL}/report/{analyze['analysis_id']}", timeout=30).json()
+    print("report:", json.dumps(report, indent=2))
 
 
-def get_json(url):
-    return urllib.request.urlopen(url)
-
-
-# ── Health check ────────────────────────────────────────────────────────────
-print("\n=== Forensica AI Smoke Test ===\n")
-r = get_json(f"{BASE}/health")
-health = json.loads(r.read())
-print(f"[HEALTH] status={health['status']}  version={health['version']}")
-
-# ── Upload ──────────────────────────────────────────────────────────────────
-png = make_tiny_png()
-r2  = post_multipart(f"{BASE}/upload", "file", "test_cert.png", "image/png", png)
-doc = json.loads(r2.read())
-doc_id = doc["id"]
-print(f"[UPLOAD] id={doc_id}  filename={doc['filename']}  size={doc['size_bytes']}B  pages={doc['pages']}")
-
-# ── Analyze ─────────────────────────────────────────────────────────────────
-r3  = post_json(f"{BASE}/analyze", {"document_id": doc_id})
-job = json.loads(r3.read())
-job_id = job["job_id"]
-print(f"[ANALYZE] job_id={job_id}  status={job['status']}")
-
-# ── Poll results ─────────────────────────────────────────────────────────────
-print("[POLL] Waiting for pipeline to complete...")
-for attempt in range(10):
-    time.sleep(0.8)
-    try:
-        r4     = get_json(f"{BASE}/analysis/{job_id}")
-        result = json.loads(r4.read())
-        if result.get("status") == "complete":
-            break
-    except urllib.error.HTTPError as e:
-        if e.code == 202:
-            continue
-        raise
-
-print(f"[RESULTS] score={result.get('score')}  class={result.get('classification')}  anomalies={len(result.get('anomalies', []))}")
-print(f"          overlays={len(result.get('overlays', []))}  modules={list(result.get('module_scores', {}).keys())}")
-
-# ── Report ───────────────────────────────────────────────────────────────────
-r5     = get_json(f"{BASE}/report/{doc_id}")
-report = json.loads(r5.read())
-print(f"[REPORT] id={report.get('report_id')}  verdict={report.get('verdict', {}).get('classification')}")
-print(f"         anomaly_rows={len(report.get('anomalies', []))}  module_scores={len(report.get('module_scores', {}))}")
-
-print("\n=== All tests passed! ===\n")
+if __name__ == "__main__":
+    main()
