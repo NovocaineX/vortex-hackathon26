@@ -6,8 +6,13 @@
 # ── Core (always required) ─────────────────────────────────────────────────
 fastapi>=0.110.0
 uvicorn[standard]>=0.29.0
-python-multipart>=0.0.9    # file upload (UploadFile)
+python-multipart>=0.0.9
 pydantic>=2.6.0
+Pillow>=10.2.0
+numpy>=1.26.0
+pytesseract>=0.3.10
+PyMuPDF>=1.24.0
+requests>=2.32.0
 
 # ── Document processing (optional — backend degrades gracefully without these)
 # Uncomment to enable real detection instead of intelligent stubs:
