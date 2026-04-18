@@ -1,0 +1,196 @@
+/* =============================================
+   FORENSICA AI — ADDITIONAL COMPONENTS & RESPONSIVE
+   ============================================= */
+
+/* ── Cybersecurity particle canvas (optional bg effect) ── */
+#bgCanvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.25;
+}
+
+/* ── Data flow animation lines on hero ── */
+.hero::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(10,168,158,0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ── Scanning animation for analysis ── */
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+.scan-line {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--teal), transparent);
+  opacity: 0.6;
+  animation: scan 2s linear infinite;
+  pointer-events: none;
+}
+
+/* ── Glitch effect on title ── */
+@keyframes glitchSkew {
+  0%, 100% { transform: skewX(0deg); }
+  50% { transform: skewX(-0.5deg); }
+}
+
+/* ── Job status badge colors ── */
+#jobStatusBadge[data-status="idle"]     { background: rgba(255,255,255,0.06); color: var(--text-muted); }
+#jobStatusBadge[data-status="running"]  { background: var(--teal-dim); color: var(--teal); }
+#jobStatusBadge[data-status="done"]     { background: var(--green-dim); color: var(--green); }
+#jobStatusBadge[data-status="error"]    { background: var(--red-dim); color: var(--red); }
+
+/* ── Animated number counter ── */
+.count-anim { display: inline-block; transition: all .1s; }
+
+/* ── Modal overlay (for enlarged doc view) ── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(8px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn .2s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.modal-content {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.7);
+  width: min(90vw, 640px);
+  max-height: 90vh;
+  overflow: auto;
+  padding: 2rem;
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all .15s;
+}
+.modal-close:hover { color: var(--text-primary); background: rgba(255,255,255,0.06); }
+
+/* ── Tooltip ── */
+.tooltip {
+  position: absolute;
+  background: rgba(0,0,0,0.95);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.78rem;
+  color: var(--text-primary);
+  z-index: 50;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  animation: tooltipIn .15s ease;
+}
+@keyframes tooltipIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Alert banner ── */
+.alert-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.83rem;
+  margin-bottom: 1rem;
+}
+.alert-banner.warn { background: var(--orange-dim); border: 1px solid rgba(249,115,22,0.3); color: var(--orange); }
+.alert-banner.info { background: var(--teal-dim); border: 1px solid rgba(10,168,158,0.3); color: var(--teal); }
+
+/* ── Page header breadcrumb ── */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+.breadcrumb-item.active { color: var(--text-primary); }
+.breadcrumb-sep { opacity: 0.4; }
+
+/* ── Loading skeleton ── */
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE OVERRIDES
+══════════════════════════════════════════ */
+@media (max-width: 1200px) {
+  .pipeline-grid { grid-template-columns: repeat(2, 1fr); }
+  .results-layout { grid-template-columns: 320px 1fr; }
+}
+
+@media (max-width: 960px) {
+  :root { --sidebar-w: 0px; }
+  .sidebar { transform: translateX(-220px); }
+  .sidebar.mobile-open { transform: translateX(0); width: 220px; }
+  .main-content { margin-left: 0; padding: 1.5rem 1rem; }
+  .hero { grid-template-columns: 1fr; min-height: auto; }
+  .hero-visual { display: none; }
+  .upload-layout { grid-template-columns: 1fr; }
+  .results-layout { grid-template-columns: 1fr; }
+  .viewer-col { position: static; }
+}
+
+@media (max-width: 720px) {
+  .topnav-links { display: none; }
+  .pipeline-grid { grid-template-columns: 1fr; }
+  .hero-stats { gap: 1rem; }
+  .formats-row { flex-direction: column; }
+  .rat-header, .rat-row { grid-template-columns: 30px 1fr 60px; }
+  .rat-conf, .rat-loc { display: none; }
+  .ms-lbl { flex: 0 0 140px; }
+  .report-logo-row { flex-direction: column; }
+}
+
+/* ── Print styles for report page ── */
+@media print {
+  .topnav, .sidebar, .page-header-actions { display: none !important; }
+  .main-content { margin-left: 0 !important; padding: 0 !important; }
+  .report-container { border: none; box-shadow: none; }
+  body { background: white; color: black; }
+}

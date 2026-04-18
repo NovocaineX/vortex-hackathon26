@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forensica AI – Document Forgery Detection Platform</title>
+  <meta name="description" content="Forensica AI is an explainable document forgery detection system for institutions. Upload certificates, transcripts, IDs and receive a visual, explainable analysis with downloadable verification reports." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="frontend/css/styles.css" />
+  <link rel="stylesheet" href="frontend/css/components.css" />
+</head>
+<body>
+  <!-- ===== APP SHELL ===== -->
+  <div id="app" class="app">
+
+    <!-- TOP NAV -->
+    <header class="topnav" id="topnav">
+      <div class="topnav-left">
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="logo" id="logoHome">
+          <div class="logo-icon">
+            <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+              <path d="M13 2L3 7V13C3 18.5 7.5 23.7 13 25C18.5 23.7 23 18.5 23 13V7L13 2Z" fill="url(#logoGrad)" stroke="none"/>
+              <path d="M9 13L12 16L17 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <defs>
+                <linearGradient id="logoGrad" x1="3" y1="2" x2="23" y2="25" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#0aa89e"/>
+                  <stop offset="100%" stop-color="#0667d0"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <span class="logo-text">Forensica <span class="logo-ai">AI</span></span>
+        </div>
+      </div>
+      <nav class="topnav-links" id="topnavLinks">
+        <a href="#" class="nav-link active" data-page="home" id="navHome">Home</a>
+        <a href="#" class="nav-link" data-page="upload" id="navUpload">Analysis</a>
+        <a href="#" class="nav-link" data-page="report" id="navReport">Report</a>
+      </nav>
+      <div class="topnav-right">
+        <div class="status-pill" id="statusPill">
+          <span class="status-dot"></span>
+          <span id="statusText">System Online</span>
+        </div>
+        <button class="btn-icon" id="notifBtn" aria-label="Notifications">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-badge">3</span>
+        </button>
+        <div class="avatar" id="userAvatar">
+          <span>VA</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <!-- SIDEBAR -->
+      <aside class="sidebar" id="sidebar">
+        <nav class="sidebar-nav">
+          <button class="sidebar-item active" data-page="home" id="sbHome">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span>Dashboard</span>
+          </button>
+          <button class="sidebar-item" data-page="upload" id="sbUpload">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+            <span>Upload</span>
+          </button>
+          <button class="sidebar-item" data-page="results" id="sbResults">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <span>Analysis</span>
+          </button>
+          <button class="sidebar-item" data-page="report" id="sbReport">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            <span>Report</span>
+          </button>
+          <div class="sidebar-divider"></div>
+          <button class="sidebar-item" data-page="settings" id="sbSettings">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span>Settings</span>
+          </button>
+        </nav>
+        <div class="sidebar-footer">
+          <div class="sidebar-version">v1.0.0 — Prototype</div>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="main-content" id="mainContent">
+
+        <!-- ===== PAGE: HOME ===== -->
+        <section class="page" id="pageHome">
+          <!-- Hero -->
+          <div class="hero">
+            <div class="hero-bg-grid"></div>
+            <div class="hero-content">
+              <div class="hero-badge">
+                <span class="badge-dot pulse-green"></span>
+                AI-Powered Document Verification
+              </div>
+              <h1 class="hero-title">
+                Detect Document<br/>
+                <span class="gradient-text">Forgery with AI</span>
+              </h1>
+              <p class="hero-subtitle">
+                Forensica AI analyzes certificates, transcripts, IDs and admission records
+                using explainable AI—highlighting suspicious regions and providing
+                downloadable verification reports in seconds.
+              </p>
+              <div class="hero-actions">
+                <button class="btn-primary" id="heroStartBtn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+                  Start Analysis
+                </button>
+                <button class="btn-secondary" id="heroLearnBtn">
+                  Learn More
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+              </div>
+              <div class="hero-stats">
+                <div class="hero-stat">
+                  <span class="stat-val">99.2%</span>
+                  <span class="stat-lbl">Detection Accuracy</span>
+                </div>
+                <div class="hero-stat-divider"></div>
+                <div class="hero-stat">
+                  <span class="stat-val">&lt;30s</span>
+                  <span class="stat-lbl">Analysis Time</span>
+                </div>
+                <div class="hero-stat-divider"></div>
+                <div class="hero-stat">
+                  <span class="stat-val">6</span>
+                  <span class="stat-lbl">Detection Modules</span>
+                </div>
+              </div>
+            </div>
+            <div class="hero-visual">
+              <div class="hero-doc-card">
+                <div class="doc-card-header">
+                  <div class="doc-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  </div>
+                  <div>
+                    <div class="doc-name">Certificate_2024.pdf</div>
+                    <div class="doc-size">2.4 MB • PDF</div>
+                  </div>
+                  <div class="risk-badge high">HIGH RISK</div>
+                </div>
+                <div class="score-ring-wrap">
+                  <div class="score-ring" id="homeRing">
+                    <svg viewBox="0 0 120 120" class="ring-svg">
+                      <circle cx="60" cy="60" r="50" class="ring-bg"/>
+                      <circle cx="60" cy="60" r="50" class="ring-fg ring-red" id="homeRingFg" style="stroke-dasharray: 314; stroke-dashoffset: 94;"/>
+                    </svg>
+                    <div class="ring-center">
+                      <span class="ring-val">70%</span>
+                      <span class="ring-lbl">Forgery Score</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="anomaly-list-mini">
+                  <div class="anomaly-mini red">
+                    <span class="a-dot"></span>
+                    Font inconsistency detected
+                  </div>
+                  <div class="anomaly-mini orange">
+                    <span class="a-dot" style="background:#f59e0b;"></span>
+                    Pixel cloning in seal area
+                  </div>
+                  <div class="anomaly-mini red">
+                    <span class="a-dot"></span>
+                    Layout margin irregularity
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pipeline -->
+          <div class="section">
+            <div class="section-header">
+              <h2 class="section-title">Detection Pipeline</h2>
+              <p class="section-sub">Six modular analysis stages provide comprehensive forgery detection</p>
+            </div>
+            <div class="pipeline-grid">
+              <div class="pipeline-card" style="--delay:0s">
+                <div class="pipeline-num">01</div>
+                <div class="pipeline-icon teal">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+                </div>
+                <h3>Document Upload</h3>
+                <p>Drag-and-drop or browse to upload PDF, JPG, or PNG documents up to 15 MB.</p>
+              </div>
+              <div class="pipeline-card" style="--delay:.07s">
+                <div class="pipeline-num">02</div>
+                <div class="pipeline-icon blue">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 6v6l4 2"/></svg>
+                </div>
+                <h3>OCR Extraction</h3>
+                <p>Tesseract OCR extracts text blocks and identifies structural zones across all pages.</p>
+              </div>
+              <div class="pipeline-card" style="--delay:.14s">
+                <div class="pipeline-num">03</div>
+                <div class="pipeline-icon purple">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                </div>
+                <h3>Pixel Analysis</h3>
+                <p>OpenCV detects noise inconsistencies, cloning artifacts, and compression anomalies.</p>
+              </div>
+              <div class="pipeline-card" style="--delay:.21s">
+                <div class="pipeline-num">04</div>
+                <div class="pipeline-icon orange">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="21" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="3" y2="18"/></svg>
+                </div>
+                <h3>Layout Check</h3>
+                <p>Alignment, margins, and grid irregularities are analyzed for structural manipulation.</p>
+              </div>
+              <div class="pipeline-card" style="--delay:.28s">
+                <div class="pipeline-num">05</div>
+                <div class="pipeline-icon red">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+                </div>
+                <h3>Font Consistency</h3>
+                <p>Font metrics and glyph shapes are compared across all zones to detect substitutions.</p>
+              </div>
+              <div class="pipeline-card" style="--delay:.35s">
+                <div class="pipeline-num">06</div>
+                <div class="pipeline-icon green">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <h3>Explainable Report</h3>
+                <p>Findings are aggregated into a confidence score with human-readable explanations.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Supported Formats -->
+          <div class="section">
+            <div class="formats-row">
+              <div class="format-card">
+                <div class="format-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                </div>
+                <span class="format-name">PDF</span>
+                <span class="format-desc">Multi-page documents</span>
+              </div>
+              <div class="format-card">
+                <div class="format-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                </div>
+                <span class="format-name">JPG / JPEG</span>
+                <span class="format-desc">Scanned documents</span>
+              </div>
+              <div class="format-card">
+                <div class="format-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                </div>
+                <span class="format-name">PNG</span>
+                <span class="format-desc">High-res images</span>
+              </div>
+              <div class="format-cta">
+                <div class="format-limit">Max file size: <strong>15 MB</strong></div>
+                <button class="btn-primary" id="fmtUploadBtn">Upload Document →</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== PAGE: UPLOAD ===== -->
+        <section class="page hidden" id="pageUpload">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Upload & Analysis</h1>
+              <p class="page-subtitle">Upload your document and run the forgery detection pipeline</p>
+            </div>
+            <div class="page-header-actions">
+              <button class="btn-outline" id="clearUploadBtn">Clear</button>
+            </div>
+          </div>
+
+          <div class="upload-layout">
+            <!-- Upload + Preview column -->
+            <div class="upload-col">
+              <!-- Drop Zone -->
+              <div class="card" id="uploadCard">
+                <div class="card-header">
+                  <h3>Document Upload</h3>
+                  <span class="card-badge teal">POST /upload</span>
+                </div>
+                <div class="dropzone" id="dropzone">
+                  <div class="dropzone-inner" id="dropzoneInner">
+                    <div class="dz-icon">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <polyline points="16 16 12 12 8 16"/>
+                        <line x1="12" y1="12" x2="12" y2="21"/>
+                        <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+                      </svg>
+                    </div>
+                    <p class="dz-title">Drop your document here</p>
+                    <p class="dz-sub">or <button class="dz-browse" id="browseBtn">browse files</button></p>
+                    <div class="dz-formats">
+                      <span class="fmt-tag">PDF</span>
+                      <span class="fmt-tag">JPG</span>
+                      <span class="fmt-tag">PNG</span>
+                      <span class="fmt-sep">•</span>
+                      <span class="fmt-size">Max 15 MB</span>
+                    </div>
+                  </div>
+                </div>
+                <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" hidden />
+
+                <!-- File Info (shown after upload) -->
+                <div class="file-info hidden" id="fileInfo">
+                  <div class="file-info-row">
+                    <div class="file-thumb" id="fileThumb">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    </div>
+                    <div class="file-meta">
+                      <span class="file-name" id="fileName">document.pdf</span>
+                      <span class="file-size" id="fileSize">2.4 MB</span>
+                    </div>
+                    <div class="file-status-icon success">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                  </div>
+                  <!-- Progress bar -->
+                  <div class="progress-wrap" id="progressWrap">
+                    <div class="progress-label">
+                      <span id="progressLabel">Uploading...</span>
+                      <span id="progressPct">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                      <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="upload-actions" id="uploadActions">
+                  <button class="btn-primary full-width" id="startAnalysisBtn" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    Start Analysis
+                  </button>
+                </div>
+              </div>
+
+              <!-- Document Preview -->
+              <div class="card" id="previewCard">
+                <div class="card-header">
+                  <h3>Document Preview</h3>
+                  <div class="viewer-controls">
+                    <button class="ctrl-btn" id="zoomOutBtn" title="Zoom out">−</button>
+                    <span class="zoom-level" id="zoomLevel">100%</span>
+                    <button class="ctrl-btn" id="zoomInBtn" title="Zoom in">+</button>
+                    <button class="ctrl-btn" id="fitBtn" title="Fit to width">⊡</button>
+                  </div>
+                </div>
+                <div class="preview-viewport" id="previewViewport">
+                  <div class="preview-empty" id="previewEmpty">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    <p>No document uploaded yet</p>
+                  </div>
+                  <div class="preview-doc hidden" id="previewDoc">
+                    <div class="doc-canvas" id="docCanvas">
+                      <!-- Simulated document pages -->
+                      <div class="doc-overlay-container" id="docOverlayContainer">
+                        <div class="sim-doc" id="simDoc">
+                          <div class="sim-header">
+                            <div class="sim-seal"></div>
+                            <div class="sim-title-block">
+                              <div class="sim-line w80 tall"></div>
+                              <div class="sim-line w50"></div>
+                            </div>
+                          </div>
+                          <div class="sim-body">
+                            <div class="sim-line w95"></div>
+                            <div class="sim-line w80"></div>
+                            <div class="sim-line w88"></div>
+                            <div class="sim-line w60"></div>
+                            <div class="sim-line w72"></div>
+                            <div class="sim-line w90"></div>
+                            <div class="sim-line w55"></div>
+                          </div>
+                          <div class="sim-footer">
+                            <div class="sim-sig"></div>
+                            <div class="sim-sig"></div>
+                          </div>
+                          <!-- Overlay boxes (shown in results) -->
+                          <div class="overlay-box red hidden" id="overlay1" style="top:12%;left:55%;width:35%;height:12%">
+                            <div class="overlay-label">Font Anomaly</div>
+                          </div>
+                          <div class="overlay-box orange hidden" id="overlay2" style="top:10%;left:5%;width:18%;height:18%">
+                            <div class="overlay-label">Pixel Clone</div>
+                          </div>
+                          <div class="overlay-box red hidden" id="overlay3" style="top:75%;left:10%;width:38%;height:10%">
+                            <div class="overlay-label">Layout Error</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="overlay-toggles" id="overlayToggles">
+                      <label class="toggle-label">
+                        <input type="checkbox" id="toggleBBox" checked /> Bounding Boxes
+                      </label>
+                      <label class="toggle-label">
+                        <input type="checkbox" id="toggleHeat" /> Heatmap
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Analysis / Results column -->
+            <div class="results-col">
+              <!-- Progress panel -->
+              <div class="card" id="progressPanel">
+                <div class="card-header">
+                  <h3>Analysis Progress</h3>
+                  <span class="card-badge" id="jobStatusBadge">Idle</span>
+                </div>
+                <div class="step-log" id="stepLog">
+                  <div class="step-item pending" id="step0">
+                    <div class="step-icon"></div>
+                    <span>Queueing</span>
+                  </div>
+                  <div class="step-item pending" id="step1">
+                    <div class="step-icon"></div>
+                    <span>OCR Text Extraction</span>
+                  </div>
+                  <div class="step-item pending" id="step2">
+                    <div class="step-icon"></div>
+                    <span>Pixel Anomaly Detection</span>
+                  </div>
+                  <div class="step-item pending" id="step3">
+                    <div class="step-icon"></div>
+                    <span>Layout Consistency Check</span>
+                  </div>
+                  <div class="step-item pending" id="step4">
+                    <div class="step-icon"></div>
+                    <span>Font Inconsistency Detection</span>
+                  </div>
+                  <div class="step-item pending" id="step5">
+                    <div class="step-icon"></div>
+                    <span>Explainability Engine</span>
+                  </div>
+                </div>
+                <div class="api-note">
+                  <code class="api-code">POST /analyze</code>
+                  <span class="api-muted">→ poll</span>
+                  <code class="api-code">GET /results/{id}</code>
+                </div>
+              </div>
+
+              <!-- Quick Stats (placeholder) -->
+              <div class="card stats-row-card" id="statsCard">
+                <div class="mini-stat">
+                  <span class="mini-stat-val" id="statScore">—</span>
+                  <span class="mini-stat-lbl">Forgery Score</span>
+                </div>
+                <div class="mini-stat-div"></div>
+                <div class="mini-stat">
+                  <span class="mini-stat-val" id="statAnomalies">—</span>
+                  <span class="mini-stat-lbl">Anomalies</span>
+                </div>
+                <div class="mini-stat-div"></div>
+                <div class="mini-stat">
+                  <span class="mini-stat-val" id="statRisk">—</span>
+                  <span class="mini-stat-lbl">Risk Level</span>
+                </div>
+              </div>
+
+              <!-- View Results CTA -->
+              <button class="btn-primary full-width hidden" id="viewResultsBtn" style="padding:1rem;">
+                View Full Results →
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== PAGE: RESULTS ===== -->
+        <section class="page hidden" id="pageResults">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Analysis Results</h1>
+              <p class="page-subtitle">Detailed forgery detection report for <span id="resultsFileName" class="text-teal">document.pdf</span></p>
+            </div>
+            <div class="page-header-actions">
+              <button class="btn-outline" id="newAnalysisBtn">New Analysis</button>
+              <button class="btn-primary" id="goReportBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Generate Report
+              </button>
+            </div>
+          </div>
+
+          <div class="results-layout">
+            <!-- Score overview -->
+            <div class="score-overview">
+              <div class="card score-card">
+                <div class="score-ring-lg">
+                  <svg viewBox="0 0 160 160" class="ring-svg-lg">
+                    <circle cx="80" cy="80" r="68" class="ring-bg"/>
+                    <circle cx="80" cy="80" r="68" class="ring-fg ring-red" id="resultRingFg" style="stroke-dasharray:427;stroke-dashoffset:128;"/>
+                  </svg>
+                  <div class="ring-center-lg">
+                    <span class="ring-val-lg" id="resultScore">70%</span>
+                    <span class="ring-lbl-lg">Forgery Score</span>
+                  </div>
+                </div>
+                <div class="risk-classification" id="riskBadge">
+                  <span class="risk-icon">⚠</span>
+                  HIGH RISK
+                </div>
+                <div class="score-breakdown">
+                  <div class="breakdown-bar">
+                    <span class="bb-label">Font</span>
+                    <div class="bb-track"><div class="bb-fill red" style="width:82%"></div></div>
+                    <span class="bb-val">82%</span>
+                  </div>
+                  <div class="breakdown-bar">
+                    <span class="bb-label">Pixel</span>
+                    <div class="bb-track"><div class="bb-fill orange" style="width:68%"></div></div>
+                    <span class="bb-val">68%</span>
+                  </div>
+                  <div class="breakdown-bar">
+                    <span class="bb-label">Layout</span>
+                    <div class="bb-track"><div class="bb-fill red" style="width:75%"></div></div>
+                    <span class="bb-val">75%</span>
+                  </div>
+                  <div class="breakdown-bar">
+                    <span class="bb-label">OCR</span>
+                    <div class="bb-track"><div class="bb-fill yellow" style="width:42%"></div></div>
+                    <span class="bb-val">42%</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Anomalies List -->
+              <div class="card anomalies-card">
+                <div class="card-header">
+                  <h3>Detected Anomalies</h3>
+                  <span class="anomaly-count" id="anomalyCount">4 Found</span>
+                </div>
+                <div class="anomaly-list" id="anomalyList">
+                  <div class="anomaly-item active" data-overlay="overlay1">
+                    <div class="anomaly-header-row">
+                      <span class="anomaly-sev high">HIGH</span>
+                      <span class="anomaly-type">Font Inconsistency</span>
+                      <span class="anomaly-conf">82%</span>
+                    </div>
+                    <p class="anomaly-desc">Two distinct font families detected in the certificate name field. Glyph metrics suggest copy-paste editing from a different source document.</p>
+                    <div class="anomaly-region">Region: (550px, 120px) → (900px, 200px)</div>
+                  </div>
+                  <div class="anomaly-item" data-overlay="overlay2">
+                    <div class="anomaly-header-row">
+                      <span class="anomaly-sev high">HIGH</span>
+                      <span class="anomaly-type">Pixel Cloning</span>
+                      <span class="anomaly-conf">74%</span>
+                    </div>
+                    <p class="anomaly-desc">Clone stamp artifacts detected in the institutional seal area. Noise pattern is inconsistent with surrounding content.</p>
+                    <div class="anomaly-region">Region: (50px, 100px) → (230px, 280px)</div>
+                  </div>
+                  <div class="anomaly-item" data-overlay="overlay3">
+                    <div class="anomaly-header-row">
+                      <span class="anomaly-sev med">MEDIUM</span>
+                      <span class="anomaly-type">Layout Irregularity</span>
+                      <span class="anomaly-conf">61%</span>
+                    </div>
+                    <p class="anomaly-desc">Footer signature block is 3.2mm below expected grid position. Margin ratios deviate significantly from template baseline.</p>
+                    <div class="anomaly-region">Region: (80px, 750px) → (480px, 840px)</div>
+                  </div>
+                  <div class="anomaly-item">
+                    <div class="anomaly-header-row">
+                      <span class="anomaly-sev low">LOW</span>
+                      <span class="anomaly-type">Compression Artifact</span>
+                      <span class="anomaly-conf">38%</span>
+                    </div>
+                    <p class="anomaly-desc">JPEG compression artifacts suggest the document was re-saved after editing, with quality inconsistencies across sections.</p>
+                    <div class="anomaly-region">Region: Global</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Document Viewer -->
+            <div class="viewer-col">
+              <div class="card viewer-card">
+                <div class="card-header">
+                  <h3>Document Viewer</h3>
+                  <div class="viewer-toolbar">
+                    <button class="ctrl-btn" id="resZoomOut">−</button>
+                    <span class="zoom-level" id="resZoomLevel">100%</span>
+                    <button class="ctrl-btn" id="resZoomIn">+</button>
+                  </div>
+                </div>
+                <div class="viewer-overlay-controls">
+                  <label class="toggle-label">
+                    <input type="checkbox" id="resBBox" checked /> Bounding Boxes
+                  </label>
+                  <label class="toggle-label">
+                    <input type="checkbox" id="resHeat" /> Heatmap Overlay
+                  </label>
+                </div>
+                <div class="doc-viewer-frame" id="docViewerFrame">
+                  <div class="doc-viewer-inner" id="docViewerInner">
+                    <div class="sim-doc res-doc" id="resSimDoc">
+                      <div class="sim-header">
+                        <div class="sim-seal"></div>
+                        <div class="sim-title-block">
+                          <div class="sim-line w80 tall" style="background:rgba(255,255,255,0.15)"></div>
+                          <div class="sim-line w50" style="background:rgba(255,255,255,0.1)"></div>
+                        </div>
+                      </div>
+                      <div class="sim-body">
+                        <div class="sim-line w95" style="background:rgba(255,255,255,0.1)"></div>
+                        <div class="sim-line w80" style="background:rgba(255,255,255,0.1)"></div>
+                        <div class="sim-line w88" style="background:rgba(255,255,255,0.1)"></div>
+                        <div class="sim-line w60" style="background:rgba(255,255,255,0.1)"></div>
+                        <div class="sim-line w72" style="background:rgba(255,255,255,0.1)"></div>
+                        <div class="sim-line w90" style="background:rgba(255,255,255,0.1)"></div>
+                      </div>
+                      <div class="sim-footer">
+                        <div class="sim-sig"></div>
+                        <div class="sim-sig"></div>
+                      </div>
+                      <!-- Overlays -->
+                      <div class="overlay-box red" id="resOverlay1" style="top:12%;left:55%;width:35%;height:12%">
+                        <div class="overlay-label">Font Anomaly</div>
+                      </div>
+                      <div class="overlay-box orange" id="resOverlay2" style="top:10%;left:5%;width:18%;height:18%">
+                        <div class="overlay-label">Pixel Clone</div>
+                      </div>
+                      <div class="overlay-box yellow" id="resOverlay3" style="top:75%;left:10%;width:38%;height:10%">
+                        <div class="overlay-label">Layout Error</div>
+                      </div>
+                      <!-- Heatmap overlay -->
+                      <div class="heatmap-layer hidden" id="heatmapLayer"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== PAGE: REPORT ===== -->
+        <section class="page hidden" id="pageReport">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Verification Report</h1>
+              <p class="page-subtitle">Structured report for verification officers</p>
+            </div>
+            <div class="page-header-actions">
+              <button class="btn-primary" id="downloadReportBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download PDF Report
+              </button>
+            </div>
+          </div>
+
+          <div class="report-container" id="reportContainer">
+            <!-- Report Header -->
+            <div class="report-letterhead">
+              <div class="report-logo-row">
+                <div class="report-brand">
+                  <svg width="32" height="32" viewBox="0 0 26 26" fill="none">
+                    <path d="M13 2L3 7V13C3 18.5 7.5 23.7 13 25C18.5 23.7 23 18.5 23 13V7L13 2Z" fill="url(#rLogoGrad)"/>
+                    <path d="M9 13L12 16L17 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <defs>
+                      <linearGradient id="rLogoGrad" x1="3" y1="2" x2="23" y2="25">
+                        <stop offset="0%" stop-color="#0aa89e"/>
+                        <stop offset="100%" stop-color="#0667d0"/>
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <div>
+                    <div class="report-brand-name">Forensica AI</div>
+                    <div class="report-brand-sub">Document Verification Platform</div>
+                  </div>
+                </div>
+                <div class="report-meta-right">
+                  <div class="report-meta-item">Report ID: <strong>FR-2024-00847</strong></div>
+                  <div class="report-meta-item">Generated: <strong id="reportDate">18 Apr 2026, 10:44</strong></div>
+                  <div class="report-meta-item">Analyst: <strong>Automated System</strong></div>
+                </div>
+              </div>
+              <div class="report-divider"></div>
+              <h2 class="report-doc-title">DOCUMENT VERIFICATION REPORT</h2>
+            </div>
+
+            <!-- Document Metadata -->
+            <div class="report-section">
+              <h3 class="report-section-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Document Information
+              </h3>
+              <div class="report-table">
+                <div class="report-row">
+                  <span class="report-key">File Name</span>
+                  <span class="report-val" id="rptFileName">Certificate_2024.pdf</span>
+                </div>
+                <div class="report-row">
+                  <span class="report-key">Document Type</span>
+                  <span class="report-val">Academic Certificate</span>
+                </div>
+                <div class="report-row">
+                  <span class="report-key">File Size</span>
+                  <span class="report-val">2.4 MB</span>
+                </div>
+                <div class="report-row">
+                  <span class="report-key">Page Count</span>
+                  <span class="report-val">1 page</span>
+                </div>
+                <div class="report-row">
+                  <span class="report-key">Upload Date</span>
+                  <span class="report-val" id="rptUploadDate">18 Apr 2026</span>
+                </div>
+                <div class="report-row">
+                  <span class="report-key">Analysis ID</span>
+                  <span class="report-val mono">JOB-8f3d-9a2b</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Verdict -->
+            <div class="report-section">
+              <h3 class="report-section-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Verification Verdict
+              </h3>
+              <div class="verdict-block high">
+                <div class="verdict-icon">⚠</div>
+                <div class="verdict-text">
+                  <div class="verdict-title">HIGH RISK — Document Likely Forged</div>
+                  <div class="verdict-sub">Forgery confidence score: <strong>70%</strong>. Multiple critical anomalies detected across font, pixel, and layout analysis modules. This document should not be accepted without further manual verification.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Anomalies Table -->
+            <div class="report-section">
+              <h3 class="report-section-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Detected Anomalies
+              </h3>
+              <div class="report-anomaly-table">
+                <div class="rat-header">
+                  <span>#</span>
+                  <span>Anomaly Type</span>
+                  <span>Severity</span>
+                  <span>Confidence</span>
+                  <span>Location</span>
+                </div>
+                <div class="rat-row">
+                  <span class="rat-num">01</span>
+                  <span class="rat-type">Font Inconsistency</span>
+                  <span class="rat-sev high-text">High</span>
+                  <span class="rat-conf">82%</span>
+                  <span class="rat-loc mono">(550,120)→(900,200)</span>
+                </div>
+                <div class="rat-row">
+                  <span class="rat-num">02</span>
+                  <span class="rat-type">Pixel Cloning</span>
+                  <span class="rat-sev high-text">High</span>
+                  <span class="rat-conf">74%</span>
+                  <span class="rat-loc mono">(50,100)→(230,280)</span>
+                </div>
+                <div class="rat-row">
+                  <span class="rat-num">03</span>
+                  <span class="rat-type">Layout Irregularity</span>
+                  <span class="rat-sev med-text">Medium</span>
+                  <span class="rat-conf">61%</span>
+                  <span class="rat-loc mono">(80,750)→(480,840)</span>
+                </div>
+                <div class="rat-row">
+                  <span class="rat-num">04</span>
+                  <span class="rat-type">Compression Artifact</span>
+                  <span class="rat-sev low-text">Low</span>
+                  <span class="rat-conf">38%</span>
+                  <span class="rat-loc mono">Global</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Module Scores -->
+            <div class="report-section">
+              <h3 class="report-section-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Module Confidence Scores
+              </h3>
+              <div class="module-scores">
+                <div class="ms-row">
+                  <span class="ms-lbl">Font Inconsistency Detection</span>
+                  <div class="ms-track"><div class="ms-fill red" style="width:82%"></div></div>
+                  <span class="ms-val">82%</span>
+                </div>
+                <div class="ms-row">
+                  <span class="ms-lbl">Layout Consistency Check</span>
+                  <div class="ms-track"><div class="ms-fill red" style="width:75%"></div></div>
+                  <span class="ms-val">75%</span>
+                </div>
+                <div class="ms-row">
+                  <span class="ms-lbl">Pixel Anomaly Detection</span>
+                  <div class="ms-track"><div class="ms-fill orange" style="width:68%"></div></div>
+                  <span class="ms-val">68%</span>
+                </div>
+                <div class="ms-row">
+                  <span class="ms-lbl">OCR Text Extraction</span>
+                  <div class="ms-track"><div class="ms-fill yellow" style="width:42%"></div></div>
+                  <span class="ms-val">42%</span>
+                </div>
+                <div class="ms-row">
+                  <span class="ms-lbl">Compression Analysis</span>
+                  <div class="ms-track"><div class="ms-fill yellow" style="width:38%"></div></div>
+                  <span class="ms-val">38%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- API Notes -->
+            <div class="report-section">
+              <h3 class="report-section-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                API Integration
+              </h3>
+              <div class="api-endpoints">
+                <div class="endpoint-row">
+                  <span class="method post">POST</span>
+                  <code class="ep-path">/upload</code>
+                  <span class="ep-desc">Document upload and validation</span>
+                </div>
+                <div class="endpoint-row">
+                  <span class="method post">POST</span>
+                  <code class="ep-path">/analyze</code>
+                  <span class="ep-desc">Trigger analysis pipeline</span>
+                </div>
+                <div class="endpoint-row">
+                  <span class="method get">GET</span>
+                  <code class="ep-path">/results/{id}</code>
+                  <span class="ep-desc">Retrieve detection results</span>
+                </div>
+                <div class="endpoint-row">
+                  <span class="method get">GET</span>
+                  <code class="ep-path">/report/{id}</code>
+                  <span class="ep-desc">Download verification report</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="report-footer">
+              <p>This report was generated by Forensica AI — an automated document forgery detection prototype. Results are for guidance only and should be combined with manual expert review for any legal or institutional decisions.</p>
+              <p class="report-footer-copy">© 2026 Forensica AI — Confidential Verification Report</p>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Toast notifications -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ES Modules — loaded as type="module" so imports work natively -->
+  <script type="module" src="frontend/js/app.js"></script>
+</body>
+</html>

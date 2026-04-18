@@ -1,0 +1,15 @@
+::1 - - [18/Apr/2026 13:09:22] "HEAD / HTTP/1.1" 200 -
+::1 - - [18/Apr/2026 13:09:35] "GET / HTTP/1.1" 200 -
+::1 - - [18/Apr/2026 13:09:35] "GET /frontend/css/styles.css HTTP/1.1" 200 -
+::1 - - [18/Apr/2026 13:09:35] "GET /frontend/css/components.css HTTP/1.1" 200 -
+::1 - - [18/Apr/2026 13:09:35] "GET /frontend/js/app.js HTTP/1.1" 200 -
+::1 - - [18/Apr/2026 13:09:35] "GET /frontend/js/upload.js HTTP/1.1" 200 -
+::1 - - [18/Apr/2026 13:09:35] "GET /frontend/js/router.js HTTP/1.1" 200 -
+::1 - - [18/Apr/2026 13:09:35] "GET /frontend/js/results.js HTTP/1.1" 200 -
+::1 - - [18/Apr/2026 13:09:35] "GET /frontend/js/report.js HTTP/1.1" 200 -
+::1 - - [18/Apr/2026 13:09:35] "GET /frontend/js/utils.js HTTP/1.1" 200 -
+::1 - - [18/Apr/2026 13:09:35] "GET /frontend/js/api.js HTTP/1.1" 200 -
+::1 - - [18/Apr/2026 13:09:35] "GET /frontend/js/state.js HTTP/1.1" 200 -
+::1 - - [18/Apr/2026 13:09:36] code 404, message File not found
+::1 - - [18/Apr/2026 13:09:36] "GET /favicon.ico HTTP/1.1" 404 -
+::1 - - [18/Apr/2026 13:11:32] "GET / HTTP/1.1" 304 -
