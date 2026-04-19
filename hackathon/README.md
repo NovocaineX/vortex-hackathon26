@@ -140,12 +140,7 @@ frontend/
     css/
     js/
 
-docs/
-    architecture.md
-    pipeline.md
-    deployment.md
 
-demo/
 ```
 
 ---
