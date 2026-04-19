@@ -1,138 +1,203 @@
 # Forensica AI
 
-**Explainable Document Forgery Detection Platform**
+### Explainable AI Platform for Document Forgery Detection
+
+Forensica AI is an AI-assisted forensic document analysis platform designed to detect forged, manipulated, or suspicious documents using explainable analysis techniques.
+The system analyzes uploaded files and highlights anomalies such as font inconsistencies, pixel cloning, layout irregularities, and compression artifacts while generating a structured forensic report.
+
+This project was built for **ThinkRoot x Vortex ’26 Hackathon – Track C**.
 
 ---
 
-## Project Structure
+## Problem Statement
 
-```
-forensica-ai/
-│
-├── index.html                  ← SPA entry point (served from root)
-├── requirements.txt            ← Python backend dependencies
-│
-├── frontend/
-│   ├── css/
-│   │   ├── styles.css          ← Design system tokens, layout, components
-│   │   └── components.css      ← Animations, modals, responsive breakpoints
-│   └── js/
-│       ├── app.js              ← Bootstrap entry (type="module")
-│       ├── router.js           ← SPA navigation with page lifecycle hooks
-│       ├── state.js            ← Centralized application state store
-│       ├── api.js              ← API client layer (fetch + mock contracts)
-│       ├── upload.js           ← Upload module: drag-drop, validation, pipeline
-│       ├── results.js          ← Results panel: anomaly list, overlay rendering
-│       ├── report.js           ← Report page: dynamic rendering, download
-│       └── utils.js            ← DOM helpers, formatters, toast, animations
-│
-└── backend/
-    ├── main.py                 ← FastAPI app factory + CORS + router mounts
-    ├── uploads/                ← Uploaded document storage
-    │
-    ├── api/
-    │   └── routes/
-    │       ├── upload.py       ← POST /upload
-    │       ├── analyze.py      ← POST /analyze
-    │       ├── results.py      ← GET /analysis/{id}
-    │       └── report.py       ← GET /report/{id}, GET /report/{id}/download
-    │
-    ├── models/
-    │   └── document.py         ← Pydantic models: DocumentRecord, AnalysisResult, VerificationReport
-    │
-    ├── services/
-    │   ├── upload_service.py   ← File validation, page counting
-    │   ├── pipeline_service.py ← Orchestrates all detection modules
-    │   ├── ocr_service.py      ← Tesseract OCR text extraction
-    │   ├── pixel_analyzer.py   ← OpenCV pixel anomaly & clone detection
-    │   ├── layout_checker.py   ← Margin, grid, alignment analysis
-    │   ├── font_detector.py    ← Font family & glyph metric comparison
-    │   ├── result_store.py     ← In-memory result registry (swap for Redis/DB)
-    │   └── report_service.py   ← Builds VerificationReport from results
-    │
-    └── utils/
-        └── aggregator.py       ← Weighted score aggregation & risk classification
-```
+Digital documents such as certificates, IDs, transcripts, invoices, and official records are frequently forged or manipulated using image editing tools.
+Manual forensic verification is time-consuming and requires expert knowledge.
+
+There is a need for an **automated system that can assist investigators and institutions in verifying document authenticity quickly and transparently.**
 
 ---
 
-## API Endpoints
+## Solution
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/upload` | Upload document, returns `{id, filename, pages, size_bytes}` |
-| `POST` | `/analyze` | Start pipeline, returns `{job_id, status}` |
-| `GET`  | `/analysis/{id}` | Poll results: score, classification, anomalies, overlays |
-| `GET`  | `/report/{id}` | Fetch structured verification report |
-| `GET`  | `/report/{id}/download` | Download PDF report |
-| `GET`  | `/health` | System health check |
+Forensica AI provides an automated pipeline that:
+
+1. Accepts uploaded documents (PDF, JPG, PNG).
+2. Extracts text and visual patterns from the document.
+3. Runs multiple forensic analysis modules.
+4. Detects suspicious anomalies.
+5. Highlights manipulated regions visually.
+6. Generates a structured forensic report with explanations.
+
+The platform focuses on **explainability**, allowing investigators to understand **why a document was flagged as suspicious** rather than just receiving a score.
 
 ---
 
-## Running the Application
+## Key Features
 
-### Frontend (no build step needed)
-```bash
-python -m http.server 7823 --directory .
-# Visit http://localhost:7823
-```
-
-### Backend
-```bash
-cd backend
-pip install -r ../requirements.txt
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-# API docs at http://localhost:8000/api/docs
-```
-
-### Connect Frontend to Real Backend
-In `frontend/js/api.js`, change:
-```js
-const API_CONFIG = {
-  BASE_URL: 'http://localhost:8000',
-  MOCK_MODE: false,   // ← switch from true to false
-};
-```
+* AI-assisted document authenticity verification
+* OCR-based text extraction
+* Pixel anomaly detection
+* Font inconsistency detection
+* Layout integrity analysis
+* Compression artifact detection
+* Explainable anomaly visualization
+* Structured forensic report generation
+* Secure per-user document history
 
 ---
 
 ## Detection Pipeline
 
-```
-User Upload
-    ↓
-POST /upload  →  upload_service.py  (validate + store)
-    ↓
-POST /analyze →  pipeline_service.py (orchestrator)
-    ├── ocr_service.py       (Tesseract OCR)
-    ├── pixel_analyzer.py    (OpenCV clone/artifact detection)
-    ├── layout_checker.py    (margin/grid analysis)
-    └── font_detector.py     (font metric comparison)
-    ↓
-utils/aggregator.py          (weighted scoring → classification)
-    ↓
-GET /analysis/{id}  →  anomalies, overlays, module scores
-GET /report/{id}    →  structured verification report
-```
+The system performs analysis using a modular forensic pipeline:
+
+1. **Document Upload**
+   User uploads a document for analysis.
+
+2. **Pre-processing**
+   Image normalization and preparation.
+
+3. **OCR Extraction**
+   Text extracted using Tesseract OCR.
+
+4. **Forensic Analysis Modules**
+
+   * Pixel anomaly detection
+   * Font inconsistency detection
+   * Layout irregularity detection
+   * Compression artifact analysis
+
+5. **Explainability Engine**
+   Highlights suspicious regions and provides reasoning.
+
+6. **Report Generation**
+   Produces a downloadable verification report.
 
 ---
 
-## Adding a New Detection Module
+## System Architecture
 
-1. Create `backend/services/my_module.py` with a `run(document_id) → dict` function
-2. Import and call it in `backend/services/pipeline_service.py`
-3. Add its weight in `backend/utils/aggregator.py`
-4. The API layer and frontend automatically pick up the new module score
+Frontend
+HTML, CSS, JavaScript dashboard interface.
+
+Backend
+Python FastAPI backend handling analysis pipeline.
+
+Detection Engine
+OpenCV image analysis + OCR processing.
+
+Database & Authentication
+Firebase Authentication and Firestore for secure per-user document storage.
+
+Storage
+Firebase Storage for encrypted user document storage.
+
+Deployment
+Application can run locally for development.
+Cloud deployment can be configured using Docker and Netlify integration.
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | HTML5, Vanilla CSS, ES Modules (no build step) |
-| Backend | Python 3.11+, FastAPI, Uvicorn |
-| OCR | Tesseract via pytesseract |
-| Image analysis | OpenCV, NumPy |
-| PDF parsing | PyMuPDF (fitz) |
-| Report gen | reportlab / weasyprint (optional) |
+Frontend
+
+* HTML
+* CSS
+* JavaScript
+
+Backend
+
+* Python
+* FastAPI
+
+AI / Image Processing
+
+* OpenCV
+* Tesseract OCR
+* NumPy
+
+Infrastructure
+
+* Firebase Authentication
+* Firebase Firestore
+* Firebase Storage
+* Docker
+* Netlify
+
+---
+
+## Repository Structure
+
+```
+backend/
+    models/
+    services/
+    routes/
+    utils/
+
+frontend/
+    css/
+    js/
+
+docs/
+    architecture.md
+    pipeline.md
+    deployment.md
+
+demo/
+```
+
+---
+
+## Running Locally
+
+Clone the repository:
+
+```
+git clone https://github.com/NovocaineX/vortex-hackathon26.git
+```
+
+Install dependencies:
+
+```
+pip install -r requirements.txt
+```
+
+Run the backend server:
+
+```
+python backend/main.py
+```
+
+Open the frontend in a browser and upload a document to start analysis.
+
+---
+
+## Security & Privacy
+
+* Documents are stored securely per user.
+* Uploaded files are isolated and encrypted.
+* User authentication prevents cross-user access to analysis history.
+
+---
+
+## Future Improvements
+
+* Deep learning based forgery detection models
+* Blockchain-based document authenticity verification
+* Institutional verification integrations
+* Large-scale batch document analysis
+* Multilingual OCR support
+
+---
+
+## Demo
+
+Demo video and screenshots are available in the `demo/` directory.
+
+---
+
+## Authors
+
+Developed by **Aadarsh (NovocaineX)** for the ThinkRoot x Vortex ’26 Hackathon.
