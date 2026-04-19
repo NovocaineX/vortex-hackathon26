@@ -53,6 +53,48 @@ export function toast(message, type = 'info', duration = 3500) {
     el.style.animation = 'toastOut .3s ease forwards';
     setTimeout(() => el.remove(), 300);
   }, duration);
+
+  // Send to persistent sidebar
+  addNotification(message, type);
+}
+
+export function addNotification(message, type = 'info') {
+  const list = document.getElementById('notifList');
+  const empty = document.getElementById('notifEmpty');
+  if (!list) return;
+  if (empty) empty.style.display = 'none';
+
+  const item = document.createElement('div');
+  item.className = `notif-sidebar-item ${type}`;
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  item.innerHTML = `
+    <div class="notif-sidebar-icon" style="color:${TOAST_COLORS[type]}">${TOAST_ICONS[type]}</div>
+    <div class="notif-sidebar-content">
+      <div class="notif-sidebar-msg">${message}</div>
+      <div class="notif-sidebar-time">${timeStr}</div>
+    </div>
+  `;
+  list.prepend(item);
+  incrementNotifBadge();
+}
+
+export function initNotificationSidebar() {
+  const btn = document.getElementById('notifBtn');
+  const closeBtn = document.getElementById('closeNotifBtn');
+  const sidebar = document.getElementById('notifSidebar');
+  
+  if (btn && sidebar) {
+    btn.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+      resetNotifBadge(); // clear badge counter when opened
+    });
+  }
+  if (closeBtn && sidebar) {
+    closeBtn.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+    });
+  }
 }
 
 // ── Animate a counter ──────────────────────────────────────────
@@ -74,3 +116,25 @@ export const SEV_COLOR = {
   MEDIUM: 'var(--orange)',
   LOW:    'var(--green)',
 };
+
+// ── Notification badge counter ─────────────────────────────────
+let _notifCount = 0;
+
+export function incrementNotifBadge() {
+  _notifCount++;
+  const badge = document.querySelector('#notifBtn .notif-badge');
+  if (!badge) return;
+  badge.textContent = _notifCount;
+  badge.style.display = 'flex';
+  badge.classList.remove('notif-pulse');
+  // Force reflow then re-add animation
+  void badge.offsetWidth;
+  badge.classList.add('notif-pulse');
+}
+
+export function resetNotifBadge() {
+  _notifCount = 0;
+  const badge = document.querySelector('#notifBtn .notif-badge');
+  if (badge) badge.style.display = 'none';
+}
+

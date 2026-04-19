@@ -36,6 +36,7 @@ function renderReport(report) {
   if ($('reportDate'))    $('reportDate').textContent    = fmtDateTime(report.generated_at);
   if ($('rptUploadDate')) $('rptUploadDate').textContent = fmtDate(report.generated_at);
   if ($('rptFileName'))   $('rptFileName').textContent   = report.document_info?.filename ?? '—';
+  if ($('rptDocType'))    $('rptDocType').textContent    = report.document_info?.type ?? 'Document';
   if ($('rptFileSize'))   $('rptFileSize').textContent   = fmtBytes(report.document_info?.size_bytes ?? 0);
   if ($('rptPages'))      $('rptPages').textContent      = `${report.document_info?.pages ?? 1} page`;
 
@@ -130,17 +131,35 @@ function animateBars() {
 // ── Download handler ───────────────────────────────────────────
 export function initReport() {
   $('downloadReportBtn')?.addEventListener('click', async () => {
-    const report  = appState.report;
-    const url     = report?.download_url;
-
-    toast('Generating PDF report… (GET /report/{id}/download)', 'info');
+    const report = appState.report;
+    const url    = report?.download_url;
 
     if (url && url !== '#' && !url.startsWith('/report/')) {
+      // Real backend URL — open directly
+      toast('Opening PDF download…', 'info');
       window.open(url, '_blank');
     } else {
-      setTimeout(() => {
-        toast('PDF download requires backend integration. Report data is ready.', 'success');
-      }, 1200);
+      // No backend PDF yet — print the current page as PDF via browser
+      toast('Opening print dialog — save as PDF to download the report.', 'info', 3000);
+      setTimeout(() => window.print(), 600);
     }
   });
+
+  const editBtn = $('editDocTypeBtn');
+  const typeVal = $('rptDocType');
+  if (editBtn && typeVal) {
+    editBtn.addEventListener('click', () => {
+      // Toggle edit mode
+      if (typeVal.querySelector('input')) {
+        const input = typeVal.querySelector('input');
+        typeVal.textContent = input.value || 'Document';
+        editBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
+      } else {
+        const curr = typeVal.textContent;
+        typeVal.innerHTML = `<input type="text" id="docTypeInput" value="${curr}" style="background:var(--bg-layer); color:var(--text-primary); border:1px solid var(--border); padding:4px 8px; border-radius:4px; font-size:0.85rem; width:100%; font-family:inherit;" />`;
+        editBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>'; // checkmark
+        document.getElementById('docTypeInput').focus();
+      }
+    });
+  }
 }

@@ -115,7 +115,7 @@ async def run_pipeline(job: AnalysisJob) -> None:
             extracted_text=ocr_result.get("full_text", ""),
             text_regions=text_regions,
         )
-        result_store.save(job.job_id, result)
+        result_store.save(job.user_uid, job.job_id, result)
 
         job.status = "complete"
         job.completed_at = datetime.now(timezone.utc)

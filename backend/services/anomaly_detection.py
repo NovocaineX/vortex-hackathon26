@@ -18,36 +18,39 @@ def detect_image_anomalies(image: Image.Image) -> dict:
     edge_regions, edge_score = _edge_artifact_analysis(gray, w, h)
 
     anomalies: list[dict] = []
-    for region in ela_regions:
-        anomalies.append(
-            {
-                "type": "compression_artifact",
-                "severity": "HIGH" if ela_score > 0.6 else "MEDIUM",
-                "confidence": round(ela_score, 3),
-                "description": "Compression inconsistencies detected in highlighted region indicating potential image editing.",
-                "region": region,
-            }
-        )
-    for region in noise_regions:
-        anomalies.append(
-            {
-                "type": "noise_inconsistency",
-                "severity": "MEDIUM" if noise_score > 0.35 else "LOW",
-                "confidence": round(noise_score, 3),
-                "description": "Inconsistent noise profile detected compared to surrounding document texture.",
-                "region": region,
-            }
-        )
-    for region in edge_regions:
-        anomalies.append(
-            {
-                "type": "edge_artifact",
-                "severity": "MEDIUM" if edge_score > 0.35 else "LOW",
-                "confidence": round(edge_score, 3),
-                "description": "Sharp boundary artifact suggests potential pasted or edited region.",
-                "region": region,
-            }
-        )
+    if ela_score > 0.35:
+        for region in ela_regions:
+            anomalies.append(
+                {
+                    "type": "compression_artifact",
+                    "severity": "HIGH" if ela_score > 0.6 else "MEDIUM",
+                    "confidence": round(ela_score, 3),
+                    "description": "Compression inconsistencies detected in highlighted region indicating potential image editing.",
+                    "region": region,
+                }
+            )
+    if noise_score > 0.35:
+        for region in noise_regions:
+            anomalies.append(
+                {
+                    "type": "noise_inconsistency",
+                    "severity": "MEDIUM" if noise_score > 0.55 else "LOW",
+                    "confidence": round(noise_score, 3),
+                    "description": "Inconsistent noise profile detected compared to surrounding document texture.",
+                    "region": region,
+                }
+            )
+    if edge_score > 0.35:
+        for region in edge_regions:
+            anomalies.append(
+                {
+                    "type": "edge_artifact",
+                    "severity": "MEDIUM" if edge_score > 0.55 else "LOW",
+                    "confidence": round(edge_score, 3),
+                    "description": "Sharp boundary artifact suggests potential pasted or edited region.",
+                    "region": region,
+                }
+            )
 
     return {
         "anomalies": anomalies,
@@ -77,7 +80,7 @@ def _error_level_analysis(image: Image.Image, w: int, h: int) -> tuple[list[dict
                 candidates.append((score, x, y))
     candidates.sort(reverse=True)
     regions = [clamp_box(x, y, block * 2, block * 2, w, h) for _, x, y in candidates[:3]]
-    ela_score = min(float(diff.mean()) / 15.0, 1.0)
+    ela_score = max(0.0, min((float(diff.mean()) - 10.0) / 40.0, 1.0))
     return regions, ela_score
 
 
@@ -96,7 +99,8 @@ def _noise_analysis(gray: np.ndarray, w: int, h: int) -> tuple[list[dict], float
     outliers = [(v, x, y) for v, x, y in values if v > mean_std + (2.0 * std_std)]
     outliers.sort(reverse=True)
     regions = [clamp_box(x, y, block * 3, block * 3, w, h) for _, x, y in outliers[:3]]
-    score = min((max([o[0] for o in outliers], default=mean_std) - mean_std) / (4 * std_std), 1.0)
+    z_val = (max([o[0] for o in outliers], default=mean_std) - mean_std) / std_std
+    score = max(0.0, min((z_val - 4.0) / 10.0, 1.0))
     return regions, float(max(score, 0.0))
 
 
@@ -110,7 +114,7 @@ def _edge_artifact_analysis(gray: np.ndarray, w: int, h: int) -> tuple[list[dict
     col_idx = int(np.argmax(col_means))
     row_z = (float(row_means[row_idx]) - float(row_means.mean())) / (float(row_means.std()) + 1e-6)
     col_z = (float(col_means[col_idx]) - float(col_means.mean())) / (float(col_means.std()) + 1e-6)
-    score = min(max(row_z, col_z) / 8.0, 1.0)
+    score = max(0.0, min((max(row_z, col_z) - 4.0) / 10.0, 1.0))
     regions: list[dict] = []
     if row_z > 3.0:
         regions.append(clamp_box(0, row_idx - 20, w, 40, w, h))

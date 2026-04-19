@@ -21,6 +21,7 @@ class DocumentRecord(BaseModel):
 class AnalysisJob(BaseModel):
     job_id: str
     document_id: str
+    user_uid: str
     status: str           # queued | running | complete | error
     created_at: datetime
     completed_at: Optional[datetime] = None

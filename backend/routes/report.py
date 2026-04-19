@@ -2,24 +2,26 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 
 from services.analysis_registry import get_analysis, get_latest_analysis_for_document
 from services.document_registry import get_document
-from utils.file_utils import new_report_id, write_report_json
+from utils.file_utils import new_report_id
+from utils.security import get_current_user
 
 router = APIRouter()
 
 
 @router.get("/report/{analysis_id}")
-async def get_report(analysis_id: str) -> dict:
-    result = get_analysis(analysis_id)
+async def get_report(analysis_id: str, user_info = Depends(get_current_user)) -> dict:
+    uid = user_info.get("uid")
+    result = get_analysis(uid, analysis_id)
     if not result:
         # Frontend may still pass document_id; support that too.
-        result = get_latest_analysis_for_document(analysis_id)
+        result = get_latest_analysis_for_document(uid, analysis_id)
     if not result:
         raise HTTPException(status_code=404, detail="Analysis not found for report generation.")
-    document = get_document(result["document_id"]) or {}
+    document = get_document(uid, result["document_id"]) or {}
 
     report_id = new_report_id()
     anomaly_rows = []
@@ -70,7 +72,6 @@ async def get_report(analysis_id: str) -> dict:
         "module_scores": result.get("module_scores", {}),
         "download_url": f"/report/{result['analysis_id']}/download",
     }
-    write_report_json(report_id, report)
     return report
 
 
