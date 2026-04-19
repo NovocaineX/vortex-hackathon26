@@ -6,11 +6,12 @@
  * through the api.js client layer.
  */
 
-import { uploadDocument, startAnalysis, getAnalysisResults } from './api.js';
+import { uploadDocument, startAnalysis, getAnalysisResults, getPreviewUrl } from './api.js';
 import { appState, setState } from './state.js';
-import { $, fmtBytes, toast, animateCounter, SEV_CLASS } from './utils.js';
+import { $, fmtBytes, toast, animateCounter, SEV_CLASS, incrementNotifBadge } from './utils.js';
 import { navigateTo } from './router.js';
 import { renderResults } from './results.js';
+import { addToHistory } from './history.js';
 
 // ── Constants ──────────────────────────────────────────────────
 const ALLOWED_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/png']);
@@ -53,6 +54,7 @@ export function initUpload() {
   $('clearUploadBtn')?.addEventListener('click', clearUpload);
   $('startAnalysisBtn')?.addEventListener('click', runAnalysisPipeline);
   $('viewResultsBtn')?.addEventListener('click', () => navigateTo('results'));
+  $('newAnalysisBtn')?.addEventListener('click', () => { clearUpload(); navigateTo('upload'); });
 }
 
 // ── File handling ──────────────────────────────────────────────
@@ -126,7 +128,39 @@ function animateProgressBar() {
 function showDocumentPreview() {
   $('previewEmpty')?.classList.add('hidden');
   $('previewDoc')?.classList.remove('hidden');
+
+  // Swap simulated wireframe for real document image (live backend only)
+  const docId = appState.document?.id ?? appState.document?.document_id;
+  const previewUrl = docId ? getPreviewUrl(docId) : null;
+  const simDoc = $('simDoc');
+
+  if (previewUrl && simDoc) {
+    let previewImg = $('docPreviewImg');
+    if (!previewImg) {
+      previewImg = document.createElement('img');
+      previewImg.id = 'docPreviewImg';
+      previewImg.alt = 'Document Preview';
+      previewImg.style.cssText = 'width:100%;height:100%;object-fit:contain;border-radius:4px;display:block;';
+      simDoc.insertBefore(previewImg, simDoc.firstChild);
+    }
+
+    // Graceful fallback — if preview fails, just keep wireframe visible
+    previewImg.onerror = () => {
+      previewImg.style.display = 'none';
+      simDoc.querySelectorAll('.sim-header,.sim-body,.sim-footer').forEach(el => {
+        el.style.display = '';
+      });
+    };
+
+    previewImg.src = previewUrl;
+    previewImg.style.display = 'block';
+    simDoc.style.cssText = 'position:relative;background:transparent;padding:0;border-radius:4px;overflow:hidden;';
+    simDoc.querySelectorAll('.sim-header,.sim-body,.sim-footer').forEach(el => {
+      el.style.display = 'none';
+    });
+  }
 }
+
 
 function clearUpload() {
   setState({ document: null, uploadStatus: 'idle', job: null, results: null, analysisStatus: 'idle' });
@@ -148,6 +182,11 @@ function clearUpload() {
   resetStepLog();
   // Hide preview overlays
   ['overlay1','overlay2','overlay3'].forEach(id => $(id)?.classList.add('hidden'));
+  // Reset real preview image if shown
+  const previewImg = $('docPreviewImg');
+  if (previewImg) previewImg.style.display = 'none';
+  const simDoc = $('simDoc');
+  if (simDoc) simDoc.querySelectorAll('.sim-header,.sim-body,.sim-footer').forEach(el => { el.style.display = ''; });
   toast('Upload cleared.', 'info');
 }
 
@@ -163,44 +202,81 @@ async function runAnalysisPipeline() {
   $('jobStatusBadge').dataset.status = 'running';
   setState({ analysisStatus: 'running' });
 
+  let jobResp;
   try {
-    // POST /analyze
-    const jobResp = await startAnalysis(appState.document.id);
+    // POST /analyze — this returns quickly with a job_id
+    jobResp = await startAnalysis(appState.document.id);
     setState({ job: jobResp });
-
-    // Simulate step-by-step progress (in real system: poll job status)
-    for (let i = 0; i < ANALYSIS_STEPS.length; i++) {
-      await runStep(i, ANALYSIS_STEPS[i].ms);
-    }
-
-    // GET /analysis/{id}
-    const results = await getAnalysisResults(jobResp.job_id);
-    setState({ results, analysisStatus: 'complete' });
-
-    // Update quick stats
-    animateCounter($('statScore'), results.score, 800, '%');
-    $('statAnomalies').textContent = results.anomalies.length;
-    $('statRisk').textContent = results.classification.replace('_', ' ');
-
-    $('jobStatusBadge').textContent = 'Complete';
-    $('jobStatusBadge').dataset.status = 'done';
-
-    // Show overlays on preview doc
-    results.overlays?.forEach(ov => $(ov.id)?.classList.remove('hidden'));
-    $('viewResultsBtn')?.classList.remove('hidden');
-
-    // Pre-populate results page with data
-    renderResults(results);
-
-    toast(`Analysis complete — ${results.anomalies.length} anomalies detected.`, 'warn');
   } catch (err) {
     setState({ analysisStatus: 'error' });
     $('jobStatusBadge').textContent = 'Error';
     $('jobStatusBadge').dataset.status = 'error';
     toast(`Analysis failed: ${err.message}`, 'error');
-  } finally {
     btn.disabled = false;
     btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> Start Analysis`;
+    return;
+  }
+
+  // ── Non-blocking: re-enable UI immediately so the user can navigate away ──
+  btn.disabled = false;
+  btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> Start Analysis`;
+  toast('Analysis running in background — you can navigate freely.', 'info', 4000);
+
+  // Capture snapshot of document for history (document may change if user re-uploads)
+  const docSnapshot = { ...appState.document };
+  const jobId = jobResp.job_id;
+
+  // ── Continue pipeline in background ───────────────────────────
+  _runBackgroundPipeline(docSnapshot, jobId);
+}
+
+async function _runBackgroundPipeline(doc, jobId) {
+  try {
+    // Visual step log (best-effort; elements may be hidden if user navigated away)
+    for (let i = 0; i < ANALYSIS_STEPS.length; i++) {
+      await runStep(i, ANALYSIS_STEPS[i].ms);
+    }
+
+    // GET /analysis/{id}
+    const results = await getAnalysisResults(jobId);
+    setState({ results, analysisStatus: 'complete' });
+
+    // Save to history store
+    addToHistory(doc, results);
+
+    // Update quick stats (if upload page still visible)
+    const statScore = $('statScore');
+    if (statScore) animateCounter(statScore, results.score, 800, '%');
+    const statAno = $('statAnomalies');
+    if (statAno) statAno.textContent = results.anomalies.length;
+    const statRisk = $('statRisk');
+    if (statRisk) statRisk.textContent = results.classification.replace('_', ' ');
+
+    const badge = $('jobStatusBadge');
+    if (badge) { badge.textContent = 'Complete'; badge.dataset.status = 'done'; }
+
+    // Show overlays on upload preview (if still on that page)
+    results.overlays?.forEach(ov => $(ov.id)?.classList.remove('hidden'));
+    $('viewResultsBtn')?.classList.remove('hidden');
+
+    // Pre-populate results page
+    renderResults(results);
+
+    // ── Non-blocking toast notification ───────────────────────────
+    const riskLabel = results.classification.replace('_', ' ');
+    toast(
+      `✅ Analysis complete — ${doc.filename}<br><strong>${riskLabel}</strong> · ${results.anomalies.length} anomalies detected.`,
+      results.classification === 'HIGH_RISK' ? 'error' : results.classification === 'SUSPICIOUS' ? 'warn' : 'success',
+      6000
+    );
+
+    // Increment notification bell
+    incrementNotifBadge();
+  } catch (err) {
+    setState({ analysisStatus: 'error' });
+    const badge = $('jobStatusBadge');
+    if (badge) { badge.textContent = 'Error'; badge.dataset.status = 'error'; }
+    toast(`Analysis failed: ${err.message}`, 'error');
   }
 }
 

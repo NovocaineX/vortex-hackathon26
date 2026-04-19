@@ -10,7 +10,6 @@ from config import (
     ALLOWED_EXTENSIONS,
     ALLOWED_MIME_TYPES,
     MAX_UPLOAD_SIZE_BYTES,
-    REPORT_DIR,
 )
 
 
@@ -44,7 +43,3 @@ def new_report_id() -> str:
     return f"report_{uuid.uuid4().hex[:12]}"
 
 
-def write_report_json(report_id: str, payload: dict[str, Any]) -> Path:
-    report_path = REPORT_DIR / f"{report_id}.json"
-    report_path.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
-    return report_path

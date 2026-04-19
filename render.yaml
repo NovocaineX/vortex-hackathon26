@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: forensica-backend
+    env: docker
+    region: ohio
+    plan: free
+    rootDir: backend
+    healthCheckPath: /health
+    envVars:
+      # Optional: Copy your valid Firebase strings into the Render dashboard
+      - key: FIREBASE_CREDENTIALS_PATH
+        sync: false
+      - key: DOCUMENT_ENCRYPTION_KEY
+        sync: false

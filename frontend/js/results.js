@@ -9,6 +9,9 @@
 import { appState, setViewerState } from './state.js';
 import { $, pct, animateCounter, SEV_CLASS, toast } from './utils.js';
 import { navigateTo } from './router.js';
+import { getPreviewUrl } from './api.js';
+
+let radarChartInst = null;
 
 // ── Public: called after analysis completes ────────────────────
 export function renderResults(data) {
@@ -32,6 +35,32 @@ export function renderResults(data) {
   // Anomaly count badge
   if ($('anomalyCount')) $('anomalyCount').textContent = `${data.anomalies.length} Found`;
   if ($('resultsFileName')) $('resultsFileName').textContent = appState.document?.filename ?? 'document.pdf';
+
+  // Render actual document image behind overlays
+  const docId = appState.document?.id ?? appState.document?.document_id;
+  const previewUrl = docId ? getPreviewUrl(docId) : null;
+  const container = $('resSimDoc');
+
+  if (previewUrl && container) {
+    let previewImg = $('resPreviewImg');
+    if (!previewImg) {
+      previewImg = document.createElement('img');
+      previewImg.id = 'resPreviewImg';
+      previewImg.alt = 'Document Preview';
+      previewImg.style.cssText = 'width:100%;height:100%;object-fit:contain;border-radius:4px;display:block;';
+      container.insertBefore(previewImg, container.firstChild);
+    }
+
+    previewImg.onerror = () => {
+      previewImg.style.display = 'none';
+      container.querySelectorAll('.sim-header,.sim-body,.sim-footer').forEach(el => el.style.display = '');
+    };
+
+    previewImg.src = previewUrl;
+    previewImg.style.display = 'block';
+    container.style.cssText = 'position:relative;background:transparent;padding:0;border-radius:4px;overflow:hidden;';
+    container.querySelectorAll('.sim-header,.sim-body,.sim-footer').forEach(el => el.style.display = 'none');
+  }
 }
 
 // ── Called on page navigation to Results ──────────────────────
@@ -84,7 +113,7 @@ function updateRiskBadge(classification) {
 
 function renderModuleBars(scores) {
   if (!scores) return;
-  const container = document.querySelector('.score-breakdown');
+  const container = document.getElementById('resultsScoreBars');
   if (!container) return;
 
   const entries = Object.entries(scores);
@@ -98,11 +127,65 @@ function renderModuleBars(scores) {
       <span class="bb-val">${Math.round(val*100)}%</span>
     </div>
   `).join('');
+
+  // Plot Radar Chart
+  const canvas = document.getElementById('moduleRadarChart');
+  if (canvas && window.Chart) {
+    if (radarChartInst) radarChartInst.destroy();
+    
+    const labels = entries.map(([k]) => shortNames[k] ?? k);
+    const dataVals = entries.map(([, v]) => v * 100);
+
+    radarChartInst = new Chart(canvas, {
+      type: 'radar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Anomaly Confidence (%)',
+          data: dataVals,
+          backgroundColor: 'rgba(10, 168, 158, 0.25)',
+          borderColor: 'rgba(10, 168, 158, 1)',
+          pointBackgroundColor: 'rgba(6, 103, 208, 1)',
+          borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          r: {
+            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+            grid: { color: 'rgba(255, 255, 255, 0.15)' },
+            pointLabels: { color: 'var(--text-secondary)', font: { size: 10 } },
+            ticks: { display: false, min: 0, max: 100 }
+          }
+        }
+      }
+    });
+  }
 }
 
 function renderAnomalyList(anomalies) {
   const list = $('anomalyList');
-  if (!list || !anomalies?.length) return;
+  if (!list) return;
+
+  // Clear any existing generic template elements
+  list.innerHTML = '';
+
+  if (!anomalies?.length) {
+    list.innerHTML = `
+      <div class="anomaly-empty" style="text-align:center; padding:3rem 1rem; color:var(--text-muted); display:flex; flex-direction:column; align-items:center; gap:0.5rem;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" style="opacity:0.8;">
+          <circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/>
+        </svg>
+        <div style="font-weight:500; color:var(--text-primary); margin-top:0.5rem;">No Anomalies Detected</div>
+        <div style="font-size:0.85rem;">Document passed automated forensic sweep</div>
+      </div>
+    `;
+    return;
+  }
 
   list.innerHTML = anomalies.map((a, i) => `
     <div class="anomaly-item ${i === 0 ? 'active' : ''}" data-anomaly-id="${a.id}" data-index="${i}">
@@ -118,12 +201,13 @@ function renderAnomalyList(anomalies) {
 }
 
 function renderOverlays(overlays) {
-  if (!overlays?.length) return;
   const container = $('resSimDoc');
   if (!container) return;
 
   // Remove old dynamic overlays
   container.querySelectorAll('.dyn-overlay').forEach(el => el.remove());
+
+  if (!overlays?.length) return;
 
   overlays.forEach(ov => {
     const div = document.createElement('div');

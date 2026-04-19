@@ -9,7 +9,10 @@ import { initRouter, navigateTo, registerHandlers } from './router.js';
 import { initUpload, initUploadViewer }              from './upload.js';
 import { onResultsPageEnter }                        from './results.js';
 import { onReportPageEnter, initReport }             from './report.js';
-import { toast }                                     from './utils.js';
+import { onHistoryPageEnter }                        from './history.js';
+import { initBatch, onBatchPageEnter }               from './batch.js';
+import { initAuth, requireAuth }                     from './auth.js';
+import { toast, initNotificationSidebar }          from './utils.js';
 import { $, $$ }                                     from './utils.js';
 import { checkBackendHealth }                        from './api.js';
 
@@ -19,13 +22,21 @@ window.addEventListener('DOMContentLoaded', async () => {
   const backendLive = await checkBackendHealth();
 
   // Register page lifecycle handlers with the router
-  registerHandlers({ onResultsPageEnter, onReportPageEnter });
+  registerHandlers({
+    onResultsPageEnter,
+    onReportPageEnter,
+    onHistoryPageEnter: () => requireAuth(onHistoryPageEnter),
+    onBatchPageEnter,
+  });
 
   // Initialize all modules
   initRouter();
   initUpload();
   initUploadViewer();
   initReport();
+  initBatch();
+  initAuth();
+  initNotificationSidebar();
 
   // Home page CTA buttons
   $('heroStartBtn')?.addEventListener('click', () => navigateTo('upload'));

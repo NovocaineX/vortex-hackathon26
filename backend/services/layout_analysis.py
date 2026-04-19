@@ -20,14 +20,14 @@ def analyze_layout(ocr_boxes: list[dict], image_w: int, image_h: int) -> dict:
     align_var = statistics.pstdev(centers) if len(centers) > 1 else 0.0
     spacing_var = statistics.pstdev(spacings) if len(spacings) > 1 else 0.0
 
-    spacing_score = min(spacing_var / max(image_h * 0.02, 1), 1.0)
-    align_score = min(align_var / max(image_w * 0.04, 1), 1.0)
-    margin_score = min(margin_var / max(image_w * 0.04, 1), 1.0)
+    spacing_score = max(0.0, min((spacing_var - image_h * 0.02) / max(image_h * 0.08, 1), 1.0))
+    align_score = max(0.0, min((align_var - image_w * 0.05) / max(image_w * 0.10, 1), 1.0))
+    margin_score = max(0.0, min((margin_var - image_w * 0.05) / max(image_w * 0.10, 1), 1.0))
     score = round(max(spacing_score, align_score, margin_score), 3)
 
     anomalies: list[dict] = []
     regions: list[dict] = []
-    if spacing_score > 0.25:
+    if spacing_score > 0.4:
         b = boxes[len(boxes) // 2]
         region = {"x": b["x"], "y": b["y"], "width": b["width"], "height": max(20, b["height"] * 2)}
         anomalies.append(
@@ -41,7 +41,7 @@ def analyze_layout(ocr_boxes: list[dict], image_w: int, image_h: int) -> dict:
         )
         regions.append(region)
 
-    if align_score > 0.25:
+    if align_score > 0.4:
         b = max(boxes, key=lambda x: abs((x["x"] + x["width"] / 2) - statistics.mean(centers)))
         region = {"x": b["x"], "y": b["y"], "width": b["width"], "height": b["height"]}
         anomalies.append(

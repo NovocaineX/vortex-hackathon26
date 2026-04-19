@@ -10,10 +10,18 @@
 // To use the real FastAPI backend:
 //   1. cd backend && uvicorn main:app --reload --port 8000
 //   2. Change MOCK_MODE to false below
+import { getAuthToken } from './auth.js';
+
+const LIVE_BACKEND_URL = 'https://forensica-backend.onrender.com';
+const LOCAL_BACKEND_URL = 'http://localhost:8000';
+
 const API_CONFIG = {
-  BASE_URL: 'http://localhost:8000',   // FastAPI backend base
+  // If viewing on Netlify/Internet, hit the Cloud. If local, hit the local python server.
+  BASE_URL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? LOCAL_BACKEND_URL 
+            : LIVE_BACKEND_URL,
   TIMEOUT_MS: 30_000,
-  MOCK_MODE: true,   // ← set false to use real backend (see README)
+  MOCK_MODE: false,
 };
 
 /**
@@ -48,10 +56,16 @@ async function request(method, path, body = null, isFormData = false) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT_MS);
 
+  const headers = isFormData ? {} : { 'Content-Type': 'application/json' };
+  const token = await getAuthToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const opts = {
     method,
     signal: controller.signal,
-    headers: isFormData ? {} : { 'Content-Type': 'application/json' },
+    headers,
   };
   if (body) opts.body = isFormData ? body : JSON.stringify(body);
 
@@ -121,6 +135,18 @@ export async function getAnalysisResults(jobId) {
  */
 export async function getReport(documentId) {
   return request('GET', `/report/${documentId}`);
+}
+
+/**
+ * GET /preview/{documentId}
+ * Returns the URL to load the document preview image.
+ * In live mode this is a direct backend URL; in mock mode returns null.
+ * @param {string} documentId
+ * @returns {string|null}
+ */
+export function getPreviewUrl(documentId) {
+  if (API_CONFIG.MOCK_MODE) return null;
+  return `${API_CONFIG.BASE_URL}/preview/${documentId}`;
 }
 
 // ── Mock implementations ───────────────────────────────────────

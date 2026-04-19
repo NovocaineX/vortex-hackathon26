@@ -13,6 +13,10 @@ numpy>=1.26.0
 pytesseract>=0.3.10
 PyMuPDF>=1.24.0
 requests>=2.32.0
+firebase-admin>=6.5.0
+python-dotenv>=1.0.1
+opencv-python>=4.9.0
+cryptography>=42.0.0
 
 # ── Document processing (optional — backend degrades gracefully without these)
 # Uncomment to enable real detection instead of intelligent stubs:

@@ -5,15 +5,14 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from config import REPORT_DIR, UPLOAD_DIR
-from routes import analysis, report, upload
+from routes import analysis, report, upload, auth
+import firebase_config  # Initializes Firebase on app start
 
 
 # ── Lifespan (startup / shutdown) ───────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print(f"[Forensica AI] Upload directory: {UPLOAD_DIR.resolve()}")
-    print(f"[Forensica AI] Report directory: {REPORT_DIR.resolve()}")
+    print("[Forensica AI] Started securely with Firebase.")
     yield
     print("[Forensica AI] Shutdown complete")
 
@@ -31,18 +30,13 @@ app = FastAPI(
 # ── CORS ────────────────────────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:7823",
-        "http://127.0.0.1:7823",
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "null",
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+app.include_router(auth.router,    tags=["Authentication"])
 app.include_router(upload.router,  tags=["Upload"])
 app.include_router(analysis.router, tags=["Analysis"])
 app.include_router(report.router,  tags=["Report"])
@@ -55,7 +49,7 @@ async def health():
         "status": "ok",
         "service": "Forensica AI",
         "version": "1.0.0",
-        "upload_dir": str(UPLOAD_DIR.resolve()),
+        "storage": "Firebase",
     }
 
 
