@@ -1,0 +1,3 @@
+https://forensica-ai-e0623f-l8nd3.thinkroot.app/		- doc hosted by thinkroot
+
+https://app.thinkroot.dev/apps/86164a5d-eb8a-44d3-b10f-62c15fad9faf		- doc gen by thinkroot using prompt
