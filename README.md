@@ -1,139 +1,143 @@
 # Forensica AI
 
-### Explainable AI Platform for Document Forgery Detection
+Explainable AI Platform for Detecting Forged or Manipulated Documents
 
-Forensica AI is an AI-assisted forensic document analysis platform designed to detect forged, manipulated, or suspicious documents using explainable analysis techniques.
-The system analyzes uploaded files and highlights anomalies such as font inconsistencies, pixel cloning, layout irregularities, and compression artifacts while generating a structured forensic report.
+Forensica AI is a cybersecurity-focused forensic analysis platform that detects potential document tampering using a modular AI-assisted pipeline. The system analyzes uploaded documents through multiple forensic stages including OCR extraction, anomaly detection, layout analysis, font verification, and metadata inspection to determine authenticity.
 
-This project was built for **ThinkRoot x Vortex ’26 Hackathon – Track C**.
+This project was developed for ThinkRoot x Vortex ’26 Hackathon — Track C.
 
----
+------------------------------------------------------------
 
-## Problem Statement
+PROBLEM
 
-Digital documents such as certificates, IDs, transcripts, invoices, and official records are frequently forged or manipulated using image editing tools.
-Manual forensic verification is time-consuming and requires expert knowledge.
+Digital documents such as certificates, transcripts, invoices, and identity records are frequently manipulated using image editing software. Traditional verification methods rely on manual inspection which is slow, error-prone, and requires specialized expertise.
 
-There is a need for an **automated system that can assist investigators and institutions in verifying document authenticity quickly and transparently.**
+There is a need for a scalable automated system that assists investigators, institutions, and organizations in detecting document forgery quickly while providing explainable evidence.
 
----
+------------------------------------------------------------
 
-## Solution
+SOLUTION
 
-Forensica AI provides an automated pipeline that:
+Forensica AI provides a modular forensic analysis pipeline capable of automatically analyzing documents and highlighting suspicious regions.
 
-1. Accepts uploaded documents (PDF, JPG, PNG).
-2. Extracts text and visual patterns from the document.
-3. Runs multiple forensic analysis modules.
-4. Detects suspicious anomalies.
-5. Highlights manipulated regions visually.
-6. Generates a structured forensic report with explanations.
+The system:
 
-The platform focuses on **explainability**, allowing investigators to understand **why a document was flagged as suspicious** rather than just receiving a score.
+• Extracts text using OCR  
+• Detects visual manipulation artifacts  
+• Identifies font inconsistencies  
+• Evaluates layout structure  
+• Analyzes metadata  
+• Aggregates risk signals into an interpretable forensic score  
+• Generates a structured verification report  
 
----
+The goal is not just detection but explainable forensic insights, allowing investigators to understand why a document is considered suspicious.
 
-## Key Features
+------------------------------------------------------------
 
-* AI-assisted document authenticity verification
-* OCR-based text extraction
-* Pixel anomaly detection
-* Font inconsistency detection
-* Layout integrity analysis
-* Compression artifact detection
-* Explainable anomaly visualization
-* Structured forensic report generation
-* Secure per-user document history
+KEY FEATURES
 
----
+• Automated document forgery detection  
+• Explainable anomaly detection  
+• OCR-based text extraction  
+• Pixel anomaly and cloning detection  
+• Font inconsistency detection  
+• Layout integrity analysis  
+• Metadata forensics  
+• Risk scoring engine  
+• Secure per-user document history  
+• Batch document analysis  
 
-## Detection Pipeline
+------------------------------------------------------------
 
-The system performs analysis using a modular forensic pipeline:
+SYSTEM ARCHITECTURE
 
-1. **Document Upload**
-   User uploads a document for analysis.
+Frontend Dashboard  
+        ↓  
+FastAPI Backend API  
+        ↓  
+Forensic Analysis Pipeline  
+    • File Preprocessor  
+    • OCR Extraction  
+    • Pixel & Anomaly Detection  
+    • Layout Consistency Check  
+    • Font Detection  
+    • Metadata Forensics  
+    • Risk Scoring Engine  
+        ↓  
+Result Aggregation + Forensic Report
 
-2. **Pre-processing**
-   Image normalization and preparation.
+------------------------------------------------------------
 
-3. **OCR Extraction**
-   Text extracted using Tesseract OCR.
+FORENSIC ANALYSIS PIPELINE
 
-4. **Forensic Analysis Modules**
+1. File Preprocessing  
+Image normalization, noise filtering, and format standardization.
 
-   * Pixel anomaly detection
-   * Font inconsistency detection
-   * Layout irregularity detection
-   * Compression artifact analysis
+2. OCR Extraction  
+Text is extracted using Tesseract OCR and analyzed for structural inconsistencies.
 
-5. **Explainability Engine**
-   Highlights suspicious regions and provides reasoning.
+3. Pixel Anomaly Detection  
+Detects cloned regions, editing artifacts, and unnatural pixel patterns.
 
-6. **Report Generation**
-   Produces a downloadable verification report.
+4. Layout Integrity Check  
+Analyzes alignment, spacing, and structural layout inconsistencies.
 
----
+5. Font Detection  
+Detects mismatched fonts and typographic anomalies often introduced by edits.
 
-## System Architecture
+6. Metadata Forensics  
+Extracts embedded metadata and identifies suspicious editing timestamps.
 
-Frontend
-HTML, CSS, JavaScript dashboard interface.
+7. Risk Scoring Engine  
+All signals are aggregated to produce a forgery probability score.
 
-Backend
-Python FastAPI backend handling analysis pipeline.
+------------------------------------------------------------
 
-Detection Engine
-OpenCV image analysis + OCR processing.
-
-Database & Authentication
-Firebase Authentication and Firestore for secure per-user document storage.
-
-Storage
-Firebase Storage for encrypted user document storage.
-
-Deployment
-Application can run locally for development.
-Cloud deployment can be configured using Docker and Netlify integration.
-
----
-
-## Tech Stack
-
-Frontend
-
-* HTML
-* CSS
-* JavaScript
+TECHNOLOGY STACK
 
 Backend
+• Python
+• FastAPI
+• OpenCV
+• Tesseract OCR
+• NumPy
 
-* Python
-* FastAPI
-
-AI / Image Processing
-
-* OpenCV
-* Tesseract OCR
-* NumPy
+Frontend
+• HTML
+• CSS
+• JavaScript
 
 Infrastructure
+• Firebase Authentication
+• Firebase Firestore
+• Firebase Storage
+• Docker
+• Netlify
 
-* Firebase Authentication
-* Firebase Firestore
-* Firebase Storage
-* Docker
-* Netlify
+------------------------------------------------------------
 
----
+STORAGE STRATEGY
 
-## Repository Structure
+Cloud Mode
 
-```
+Firebase is used for:
+
+• User authentication  
+• Secure document storage  
+• Analysis result persistence  
+
+Local Mode
+
+For development and resource efficiency, the system can run locally with temporary storage and offline analysis.
+
+------------------------------------------------------------
+
+REPOSITORY STRUCTURE
+
 backend/
     models/
-    services/
     routes/
+    services/
     utils/
 
 frontend/
@@ -146,58 +150,53 @@ docs/
     deployment.md
 
 demo/
-```
+    screenshots
 
----
+------------------------------------------------------------
 
-## Running Locally
+RUNNING THE PROJECT LOCALLY
 
-Clone the repository:
+Clone the repository
 
-```
 git clone https://github.com/NovocaineX/vortex-hackathon26.git
-```
 
-Install dependencies:
+Install dependencies
 
-```
 pip install -r requirements.txt
-```
 
-Run the backend server:
+Run the backend server
 
-```
 python backend/main.py
-```
 
-Open the frontend in a browser and upload a document to start analysis.
+Open the frontend in your browser and upload a document to start analysis.
 
----
+------------------------------------------------------------
 
-## Security & Privacy
+SECURITY AND PRIVACY
 
-* Documents are stored securely per user.
-* Uploaded files are isolated and encrypted.
-* User authentication prevents cross-user access to analysis history.
+• Each user's uploads are isolated  
+• Documents are encrypted in storage  
+• Access control enforced through Firebase authentication  
+• Analysis history is restricted per user  
 
----
+------------------------------------------------------------
 
-## Future Improvements
+FUTURE IMPROVEMENTS
 
-* Deep learning based forgery detection models
-* Blockchain-based document authenticity verification
-* Institutional verification integrations
-* Large-scale batch document analysis
-* Multilingual OCR support
+• Deep learning based forgery detection models  
+• Blockchain-backed document verification  
+• Institutional verification APIs  
+• Multilingual OCR support  
+• Large scale batch verification  
 
----
+------------------------------------------------------------
 
-## Demo
+DEMO
 
-Demo video and screenshots are available in the `demo/` directory.
+Demo video and screenshots are available in the demo directory.
 
----
+------------------------------------------------------------
 
-## Authors
+AUTHOR
 
-Developed by **Aadarsh (NovocaineX)** for the ThinkRoot x Vortex ’26 Hackathon.
+Developed by Aadarsh (NovocaineX) for ThinkRoot x Vortex ’26 Hackathon.
